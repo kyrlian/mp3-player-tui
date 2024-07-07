@@ -6,7 +6,6 @@
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Button, DirectoryTree, Footer, Header, Static
-from textual.reactive import reactive
 from audioplayer import AudioPlayer
 import os
 
@@ -14,7 +13,7 @@ class AudioCLI(App):
     """A Textual app to play audio files."""
 
     CSS_PATH = "audio_cli.css"
-    BINDINGS = [("q", "quit", "Quit")]
+    BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause")]
     debug = True
     player = None
 
@@ -58,16 +57,20 @@ class AudioCLI(App):
         filename, file_extension = os.path.splitext(filepath)
         self.query_one("#track-info").update(f"Now playing: {filename}")
 
+    def action_pause(self):
+        self.query_one("#status-info").update(f"Pause")
+        if self.player:
+            self.player.pause()
+    
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""
-        if self.debug: self.update_display(f"Pressed : {event.button.id}")
+        if self.debug: self.query_one("#status-info").update(f"Pressed : {event.button.id}")
         if self.player:
             if event.button.id == "play":
                 self.query_one("#status-info").update(f"Play")
                 self.player.play()
             elif event.button.id == "pause":
-                self.query_one("#status-info").update(f"Pause")
-                self.player.pause()
+                self.action_pause()
             elif event.button.id == "stop":
                 self.query_one("#status-info").update(f"Stop")
                 self.player.stop()
