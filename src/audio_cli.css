@@ -1,0 +1,32 @@
+#main {
+    layout: grid;
+    grid-size: 2;
+    grid-columns: 1fr 2fr;
+    grid-rows: 1fr auto;
+    height: 100%;
+}
+
+#dir-tree {
+    width: 100%;
+    height: 100%;
+    border: solid green;
+}
+
+#track-info {
+    width: 100%;
+    height: 1fr;
+    content-align: center middle;
+    background: $boost;
+}
+
+#controls {
+    column-span: 2;
+    height: auto;
+    layout: horizontal;
+    background: $panel;
+    padding: 1 2;
+}
+
+Button {
+    width: 1fr;
+}
