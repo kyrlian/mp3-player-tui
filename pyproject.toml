@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "mp3_player_tui"
+version = "0.1.0"
+description = ""
+authors = ["kyrlian <kyrlian@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+textual = "^0.75.1"
+audioplayer = "^0.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

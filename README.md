@@ -18,10 +18,23 @@ playsound('myfile.wav')
 ## Install
 
 ```sh
+poetry install
+```
+
+or 
+
+```sh
 pip install -r requirements.txt -U
 ```
 
-## Use
+## Run
+
+```sh
+poetry shell
+python python.exe ./mp3_player_tui/main.py
+```
+
+## Usage
 
 **TODO**
 
