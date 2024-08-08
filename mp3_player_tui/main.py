@@ -1,8 +1,4 @@
-# Generated with websim.ai
-# Prompt:
-# an mp3 player in the terminal, using python textual and audioplayer
-# https://websim.ai/c/RdhSoPKFvkM0HbwLx
-
+from turtle import st
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Button, DirectoryTree, Footer, Header, Static
@@ -12,27 +8,18 @@ import os
 class AudioCLI(App):
     """A Textual app to play audio files."""
 
-    CSS_PATH = "audio_cli.css"
-    BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause")]
+    BINDINGS = [("q", "quit", "Quit"), ("p","playpause","Play/Pause")]
     debug = True
     player = None
-
+    playing = False
+    playing_file = ""
+    
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
         yield Vertical(
             DirectoryTree(".", id="dir-tree"),
-            Vertical(
-                Static("...", id="track-info"),
-                Static("Please select an .mp3 file", id="status-info"),
-                id="displays"
-            ),
-            Horizontal(
-                Button("Play", id="play"),
-                Button("Pause", id="pause"),
-                Button("Stop", id="stop"),
-                id="controls",
-            ),
+            Static("Please select an .mp3 file", id="status"),
             id="main",
         )
         yield Footer()
@@ -54,26 +41,22 @@ class AudioCLI(App):
             self.player.stop()
         self.player = AudioPlayer(os.path.abspath(filepath))
         self.player.play()
+        self.playing = True
         filename, file_extension = os.path.splitext(filepath)
-        self.query_one("#track-info").update(f"Now playing: {filename}")
+        self.playing_file = filename
+        self.query_one("#status").update(f"Now playing: {filename}")
 
-    def action_pause(self):
-        self.query_one("#status-info").update(f"Pause")
+    def action_playpause(self, play=None):
+        if play is None:
+            self.playing = not self.playing
+        else:
+            self.playing = play
+        self.query_one("#status").update( self.playing_file + (" playing" if self.playing else " paused" ) )
         if self.player:
-            self.player.pause()
-    
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button presses."""
-        if self.debug: self.query_one("#status-info").update(f"Pressed : {event.button.id}")
-        if self.player:
-            if event.button.id == "play":
-                self.query_one("#status-info").update(f"Play")
-                self.player.play()
-            elif event.button.id == "pause":
-                self.action_pause()
-            elif event.button.id == "stop":
-                self.query_one("#status-info").update(f"Stop")
-                self.player.stop()
+            if self.playing:
+                self.player.resume()
+            else:
+                self.player.pause()
 
 if __name__ == "__main__":
     app = AudioCLI()
