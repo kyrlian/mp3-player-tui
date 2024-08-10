@@ -14,3 +14,6 @@ audioplayer = "^0.6"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+mp3player = "mp3_player_tui.main:main"
