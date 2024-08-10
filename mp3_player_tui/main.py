@@ -3,7 +3,7 @@ from time import sleep
 from turtle import st
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Button, DirectoryTree, Footer, Header, Static
+from textual.widgets import Button, DirectoryTree, Footer, Header, Static, Log
 from audioplayer import AudioPlayer
 import os
 import asyncio
@@ -22,7 +22,8 @@ class AudioCLI(App):
         """Create child widgets for the app."""
         yield Header()
         yield DirectoryTree(".", id="dir-tree")
-        yield Static("Please select an .mp3 file", id="status")
+        #yield Static("Please select an .mp3 file", id="status")
+        yield Log("Please select an .mp3 file", id="status", auto_scroll=True)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -42,18 +43,19 @@ class AudioCLI(App):
             msg = self.status_msg
         elif save_status:
             self.status_msg = msg
-        self.query_one("#status", Static).update(msg)
+        # self.query_one("#status", Static).update(msg)
+        self.query_one("#status", Log).write_line(msg)
 
     def find_next_file(self,filepath):
         filename = os.path.basename(filepath)
         filedir = os.path.dirname(filepath)
-        self.set_status(f"filename:{filename} filedir:{filedir}")
+        self.set_status(f"find_next_file of filename:{filename} filedir:{filedir}")
         getnext= False
         for f in os.listdir(filedir):
             if getnext:
                 fname, fextension = os.path.splitext(f) 
                 if fextension == '.mp3':
-                    self.set_status(f"filedir:{filedir} f:{f}")
+                    self.set_status(f"find_next_file found Next: filedir:{filedir} f:{f}")
                     return os.path.join(filedir, f)
             if f == filename:
                 getnext = True
@@ -62,7 +64,7 @@ class AudioCLI(App):
     async def play_track(self, filepath):
         self.set_status(f"play_track {filepath} start")
         self.player = AudioPlayer(os.path.abspath(filepath))
-        self.player.play(block=True)#TODO DEBUG: with block=True this always blocks (with or without async), even in a task - with block=False it starts playing and continue without waiting for the end
+        self.player.play(block=False)#TODO DEBUG: with block=True this always blocks (with or without async), even in a task - with block=False it starts playing and continue without waiting for the end
         self.set_status(f"play_track {filepath} end")
         
     def play_track_and_next(self, filepath) -> None:
@@ -76,8 +78,8 @@ class AudioCLI(App):
             self.playing = True
             task = asyncio.create_task(self.play_track(filepath))
             # TODO DEBUG :
-            # if play_track is NOT async - this never plays the next song (seems playtrack() becomes main thread and stops)
-            # if play_track is async - this plays each song without waiting for the previous one to finish
+            # if play_track is NOT async - this never plays the next song (seems playtrack() becomes main thread and doenst return at the end)
+            # if play_track is async - this plays each song without waiting (depending on play(block) ) for the previous one to finish
             # => should be async
             self.set_status(f"Finished playing: {filename}")
             filepath = self.find_next_file(filepath)
