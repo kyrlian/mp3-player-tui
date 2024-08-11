@@ -10,7 +10,7 @@ class AudioCLI(App):
 
     BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause"), ("n","next","Next")]
     
-    def __init__(self, *args, start_dir=".", **kwargs):
+    def __init__(self, *args, start_dir, **kwargs):
         mixer.init()
         self.paused = False
         self.playing_file = ""
@@ -99,7 +99,7 @@ class AudioCLI(App):
 
 def main():
     args = sys.argv[1:]
-    start_dir = None if len(args) == 0 else args[0]    
+    start_dir = "." if len(args) == 0 else args[0]    
     app = AudioCLI(start_dir=start_dir)
     app.run()    
 
