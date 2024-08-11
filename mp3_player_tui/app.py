@@ -7,7 +7,7 @@ from pygame import mixer
 
 class AudioCLI(App):
     """A Textual app to play audio files."""
-
+    TITLE = "TUI mp3 player"
     BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause"), ("n","next","Next")]
     
     def __init__(self, *args, start_dir, **kwargs):
