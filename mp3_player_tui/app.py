@@ -1,5 +1,6 @@
 import os
 import asyncio
+import sys
 from textual.app import App, ComposeResult
 from textual.widgets import DirectoryTree, Footer, Header, Static
 from pygame import mixer
@@ -8,17 +9,20 @@ class AudioCLI(App):
     """A Textual app to play audio files."""
 
     BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause"), ("n","next","Next")]
-    debug = True
-    mixer.init()
-    paused = False
-    playing_file = ""
-    status_msg="Initializing..."
     
+    def __init__(self, *args, start_dir=".", **kwargs):
+        mixer.init()
+        self.paused = False
+        self.playing_file = ""
+        self.start_dir = start_dir
+        self.status_msg = "Initializing..."
+        super().__init__(*args, **kwargs)
+
         
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        yield DirectoryTree(path=".", id="dir-tree")
+        yield DirectoryTree(path=self.start_dir, id="dir-tree")
         yield Static("Please select an .mp3 file", id="status")
         # yield Log("Please select an .mp3 file", id="status", auto_scroll=True)
         yield Footer()
@@ -67,13 +71,13 @@ class AudioCLI(App):
         self.paused = False
         while filepath is not None:
             filename, file_extension = os.path.splitext(filepath)
-            self.set_status(f"Now playing: {filename}")
+            self.set_status(f"Now playing: {os.path.basename(filename)}")
             self.playing_file = filename
             mixer.music.load(filepath)
             mixer.music.play()
             while mixer.music.get_busy() or self.paused:
                 await asyncio.sleep(.1)
-            self.set_status(f"Finished playing: {filename}")
+            self.set_status(f"Finished playing: {os.path.basename(filename)}")
             self.playing_file = None
             filepath = self.find_next_file(filepath)
     
@@ -91,10 +95,12 @@ class AudioCLI(App):
                 mixer.music.pause()
             else:
                 mixer.music.unpause()
-            self.set_status( self.playing_file  + (" paused" if self.paused else " playing" ) )
+            self.set_status( os.path.basename(self.playing_file)  + (" paused" if self.paused else " playing" ) )
 
 def main():
-    app = AudioCLI()
+    args = sys.argv[1:]
+    start_dir = None if len(args) == 0 else args[0]    
+    app = AudioCLI(start_dir=start_dir)
     app.run()    
 
 if __name__ == "__main__":

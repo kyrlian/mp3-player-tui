@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mp3_player_tui"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["kyrlian <kyrlian@gmail.com>"]
 readme = "README.md"
@@ -16,4 +16,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-mp3player = "mp3_player_tui.main:main"
+mp3player = "mp3_player_tui:main"
