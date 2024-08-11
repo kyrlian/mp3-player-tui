@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 textual = "^0.75.1"
-audioplayer = "^0.6"
+pygame = "^2.6.0"
 
 
 [build-system]

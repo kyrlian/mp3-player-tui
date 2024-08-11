@@ -1,29 +1,26 @@
-from concurrent.futures import wait
-from time import sleep
-from turtle import st
-from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Button, DirectoryTree, Footer, Header, Static, Log
-from audioplayer import AudioPlayer
 import os
 import asyncio
+from textual.app import App, ComposeResult
+from textual.widgets import DirectoryTree, Footer, Header, Static
+from pygame import mixer
 
 class AudioCLI(App):
     """A Textual app to play audio files."""
 
-    BINDINGS = [("q", "quit", "Quit"), ("p","playpause","Play/Pause")]
+    BINDINGS = [("q", "quit", "Quit"), ("p","pause","Pause"), ("n","next","Next")]
     debug = True
-    player = None
-    playing = False
+    mixer.init()
+    paused = False
     playing_file = ""
     status_msg="Initializing..."
-
+    
+        
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        yield DirectoryTree(".", id="dir-tree")
-        #yield Static("Please select an .mp3 file", id="status")
-        yield Log("Please select an .mp3 file", id="status", auto_scroll=True)
+        yield DirectoryTree(path=".", id="dir-tree")
+        yield Static("Please select an .mp3 file", id="status")
+        # yield Log("Please select an .mp3 file", id="status", auto_scroll=True)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -36,65 +33,65 @@ class AudioCLI(App):
         self.selected_dir = event.path
         filename, file_extension = os.path.splitext(filepath) 
         if file_extension == '.mp3':
-            self.play_track_and_next(filepath)
+            asyncio.create_task(self.play_track_and_next(filepath))
 
     def set_status(self, msg=None, save_status=True):
         if msg is None:
             msg = self.status_msg
         elif save_status:
             self.status_msg = msg
-        # self.query_one("#status", Static).update(msg)
-        self.query_one("#status", Log).write_line(msg)
+        # timestamp = datetime.now().strftime("%H:%M:%S")
+        # self.query_one("#status", Log).write_line(f"{timestamp}: {msg}")
+        self.query_one("#status", Static).update(msg)
 
     def find_next_file(self,filepath):
-        filename = os.path.basename(filepath)
-        filedir = os.path.dirname(filepath)
-        self.set_status(f"find_next_file of filename:{filename} filedir:{filedir}")
-        getnext= False
-        for f in os.listdir(filedir):
-            if getnext:
-                fname, fextension = os.path.splitext(f) 
-                if fextension == '.mp3':
-                    self.set_status(f"find_next_file found Next: filedir:{filedir} f:{f}")
-                    return os.path.join(filedir, f)
-            if f == filename:
-                getnext = True
+        if filepath is not None:
+            filename = os.path.basename(filepath)
+            filedir = os.path.dirname(filepath)
+            #self.set_status(f"find_next_file: Looking for next after:{filename} filedir:{filedir}")
+            getnext= False
+            for f in os.listdir(filedir):
+                if getnext:
+                    fname, fextension = os.path.splitext(f) 
+                    if fextension == '.mp3':
+                        #self.set_status(f"find_next_file: Found next file: filedir:{filedir} f:{f}")            
+                        self.query_one("#dir-tree", DirectoryTree).action_cursor_down()
+                        return os.path.join(filedir, f)
+                if f == filename:
+                    getnext = True
+            #self.set_status("find_next_file: No next file found")
         return None
 
-    async def play_track(self, filepath):
-        self.set_status(f"play_track {filepath} start")
-        self.player = AudioPlayer(os.path.abspath(filepath))
-        self.player.play(block=False)#TODO DEBUG: with block=True this always blocks (with or without async), even in a task - with block=False it starts playing and continue without waiting for the end
-        self.set_status(f"play_track {filepath} end")
-        
-    def play_track_and_next(self, filepath) -> None:
-        """Play the selected track and the next tracks in the directory"""
-        if self.player:
-            self.player.stop()
+    async def play_track_and_next(self, filepath):
+        mixer.music.stop()
+        self.paused = False
         while filepath is not None:
             filename, file_extension = os.path.splitext(filepath)
-            self.playing_file = filename
             self.set_status(f"Now playing: {filename}")
-            self.playing = True
-            task = asyncio.create_task(self.play_track(filepath))
-            # TODO DEBUG :
-            # if play_track is NOT async - this never plays the next song (seems playtrack() becomes main thread and doenst return at the end)
-            # if play_track is async - this plays each song without waiting (depending on play(block) ) for the previous one to finish
-            # => should be async
+            self.playing_file = filename
+            mixer.music.load(filepath)
+            mixer.music.play()
+            while mixer.music.get_busy() or self.paused:
+                await asyncio.sleep(.1)
             self.set_status(f"Finished playing: {filename}")
+            self.playing_file = None
             filepath = self.find_next_file(filepath)
+    
+    def action_next(self):
+        n = self.find_next_file(self.playing_file)
+        asyncio.create_task(self.play_track_and_next(n))
 
-    def action_playpause(self, play=None):
-        if play is None:
-            self.playing = not self.playing
-        else:
-            self.playing = play
-        self.set_status( self.playing_file + (" playing" if self.playing else " paused" ) )
-        if self.player:
-            if self.playing:
-                self.player.resume()
+    def action_pause(self, paused=None):
+        if self.playing_file is not None:
+            if paused is None:
+                self.paused = not self.paused
             else:
-                self.player.pause()
+                self.paused = paused
+            if self.paused:
+                mixer.music.pause()
+            else:
+                mixer.music.unpause()
+            self.set_status( self.playing_file  + (" paused" if self.paused else " playing" ) )
 
 def main():
     app = AudioCLI()
