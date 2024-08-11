@@ -9,7 +9,7 @@ git clone https://github.com/kyrlian/mp3-player-tui.git
 cd mp3-player-tui
 ```
 
-## Install system-wide with pipx
+## Install and run system-wide with pipx
 
 ```sh
 pipx install .
