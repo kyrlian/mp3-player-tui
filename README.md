@@ -2,14 +2,24 @@
 
 TUI mp3 player in [python](https://www.python.org/), [textual](https://textual.textualize.io/), using [pygame.mixer.music](https://www.pygame.org/docs/ref/music.html)
 
-## Get
+Get [uv](https://docs.astral.sh/uv/)
+
+## Install directly from GitHub
+
+```sh
+uv tool install git+https://github.com/kyrlian//mp3-player-tui.git
+```
+
+run with `mp3player <optional:start-dir>`
+
+## Or get locally
 
 ```sh
 git clone https://github.com/kyrlian/mp3-player-tui.git
 cd mp3-player-tui
 ```
 
-## Install and run with poetry
+## Run with uv
 
 ```sh
 uv run mp3_player_tui/app.py <optional:start-dir>
@@ -21,8 +31,6 @@ uv run mp3_player_tui/app.py <optional:start-dir>
 uv tool install .
 mp3player <optional:start-dir>
 ```
-
-
 
 ## Ressources
 
