@@ -1,5 +1,7 @@
 # mp3-player-tui
 
+# Migrated to https://codeberg.org/kyrlian/mp3-player-tui
+
 TUI mp3 player in [python](https://www.python.org/), [textual](https://textual.textualize.io/), using [pygame.mixer.music](https://www.pygame.org/docs/ref/music.html)
 
 Get [uv](https://docs.astral.sh/uv/)
